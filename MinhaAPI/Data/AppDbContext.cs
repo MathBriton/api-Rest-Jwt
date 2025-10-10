@@ -10,12 +10,13 @@ public class AppDbContext : DbContext
     }
 
     public DbSet<User> Users { get; set; }
+    public DbSet<Product> Products { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        // Índice único para Username e Email
+        // User indexes
         modelBuilder.Entity<User>()
             .HasIndex(u => u.Username)
             .IsUnique();
@@ -23,5 +24,20 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<User>()
             .HasIndex(u => u.Email)
             .IsUnique();
+
+        // Product indexes
+        modelBuilder.Entity<Product>()
+            .HasIndex(p => p.Name);
+
+        modelBuilder.Entity<Product>()
+            .HasIndex(p => p.Category);
+
+        modelBuilder.Entity<Product>()
+            .HasIndex(p => p.IsActive);
+
+        // Decimal precision
+        modelBuilder.Entity<Product>()
+            .Property(p => p.Price)
+            .HasPrecision(18, 2);
     }
 }

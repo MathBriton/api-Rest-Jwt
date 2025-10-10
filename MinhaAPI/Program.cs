@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using MinhaAPI.Data;
+using MinhaAPI.Models;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -53,10 +54,10 @@ using (var scope = app.Services.CreateScope())
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     dbContext.Database.EnsureCreated();
     
-    // Seed de dados inicial (usuário admin padrão)
+    // Seed de dados inicial
     if (!dbContext.Users.Any())
     {
-        var adminUser = new MinhaAPI.Models.User
+        var adminUser = new User
         {
             Username = "admin",
             Email = "admin@minhaapi.com",
@@ -65,7 +66,7 @@ using (var scope = app.Services.CreateScope())
             CreatedAt = DateTime.UtcNow
         };
         
-        var regularUser = new MinhaAPI.Models.User
+        var regularUser = new User
         {
             Username = "user",
             Email = "user@minhaapi.com",
@@ -80,6 +81,69 @@ using (var scope = app.Services.CreateScope())
         Console.WriteLine("✅ Usuários padrão criados:");
         Console.WriteLine("   Admin - username: admin, password: admin123");
         Console.WriteLine("   User  - username: user, password: user123");
+    }
+    
+    // Seed de produtos
+    if (!dbContext.Products.Any())
+    {
+        var products = new[]
+        {
+            new Product
+            {
+                Name = "Notebook Dell",
+                Description = "Notebook Dell Inspiron 15, 8GB RAM, 256GB SSD",
+                Price = 3500.00m,
+                Stock = 15,
+                Category = "Eletrônicos",
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow
+            },
+            new Product
+            {
+                Name = "Mouse Logitech",
+                Description = "Mouse sem fio Logitech MX Master 3",
+                Price = 350.00m,
+                Stock = 50,
+                Category = "Periféricos",
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow
+            },
+            new Product
+            {
+                Name = "Teclado Mecânico",
+                Description = "Teclado mecânico RGB, switches blue",
+                Price = 450.00m,
+                Stock = 30,
+                Category = "Periféricos",
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow
+            },
+            new Product
+            {
+                Name = "Monitor LG 27",
+                Description = "Monitor LG 27 polegadas, Full HD, IPS",
+                Price = 1200.00m,
+                Stock = 20,
+                Category = "Eletrônicos",
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow
+            },
+            new Product
+            {
+                Name = "Webcam Logitech C920",
+                Description = "Webcam Full HD 1080p",
+                Price = 550.00m,
+                Stock = 0,
+                Category = "Periféricos",
+                IsActive = false,
+                CreatedAt = DateTime.UtcNow
+            }
+        };
+        
+        dbContext.Products.AddRange(products);
+        dbContext.SaveChanges();
+        
+        Console.WriteLine("✅ Produtos de exemplo criados!");
     }
 }
 

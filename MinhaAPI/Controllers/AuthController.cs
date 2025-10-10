@@ -27,7 +27,6 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
-        // Verificar se usuário já existe
         if (await _context.Users.AnyAsync(u => u.Username == request.Username))
         {
             return BadRequest(new { message = "Username já está em uso" });
@@ -38,14 +37,12 @@ public class AuthController : ControllerBase
             return BadRequest(new { message = "Email já está em uso" });
         }
 
-        // Validar role
         var validRoles = new[] { "Admin", "User", "Manager" };
         if (!validRoles.Contains(request.Role))
         {
             request.Role = "User";
         }
 
-        // Criar novo usuário
         var user = new User
         {
             Username = request.Username,
@@ -64,7 +61,6 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
-        // Buscar usuário
         var user = await _context.Users
             .FirstOrDefaultAsync(u => u.Username == request.Username);
 
@@ -73,7 +69,6 @@ public class AuthController : ControllerBase
             return Unauthorized(new { message = "Usuário ou senha inválidos" });
         }
 
-        // Gerar token
         var token = GenerateJwtToken(user);
         var expiration = DateTime.UtcNow.AddMinutes(
             int.Parse(_configuration["JwtSettings:ExpirationMinutes"]));
@@ -110,23 +105,6 @@ public class AuthController : ControllerBase
         }
 
         return Ok(user);
-    }
-
-    [Authorize(Policy = "UserOrAdmin")]
-    [HttpGet("user-area")]
-    public IActionResult UserArea()
-    {
-        var username = User.FindFirst(ClaimTypes.Name)?.Value;
-        var role = User.FindFirst(ClaimTypes.Role)?.Value;
-        return Ok(new { message = $"Área de usuário! Bem-vindo, {username} ({role})" });
-    }
-
-    [Authorize(Policy = "AdminOnly")]
-    [HttpGet("admin-area")]
-    public IActionResult AdminArea()
-    {
-        var username = User.FindFirst(ClaimTypes.Name)?.Value;
-        return Ok(new { message = $"Área administrativa! Bem-vindo, Admin {username}" });
     }
 
     [Authorize(Policy = "AdminOnly")]
@@ -198,4 +176,9 @@ public class AuthController : ControllerBase
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
+}
+
+public class UpdateRoleRequest
+{
+    public string Role { get; set; }
 }
