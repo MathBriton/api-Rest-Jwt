@@ -38,19 +38,27 @@ public class AuthController : ControllerBase
             return BadRequest(new { message = "Email já está em uso" });
         }
 
+        // Validar role
+        var validRoles = new[] { "Admin", "User", "Manager" };
+        if (!validRoles.Contains(request.Role))
+        {
+            request.Role = "User";
+        }
+
         // Criar novo usuário
         var user = new User
         {
             Username = request.Username,
             Email = request.Email,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
+            Role = request.Role,
             CreatedAt = DateTime.UtcNow
         };
 
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
 
-        return Ok(new { message = "Usuário registrado com sucesso", userId = user.Id });
+        return Ok(new { message = "Usuário registrado com sucesso", userId = user.Id, role = user.Role });
     }
 
     [HttpPost("login")]
@@ -74,7 +82,8 @@ public class AuthController : ControllerBase
         {
             Token = token,
             Expiration = expiration,
-            Username = user.Username
+            Username = user.Username,
+            Role = user.Role
         });
     }
 
@@ -90,6 +99,7 @@ public class AuthController : ControllerBase
                 u.Id,
                 u.Username,
                 u.Email,
+                u.Role,
                 u.CreatedAt
             })
             .FirstOrDefaultAsync();
@@ -102,12 +112,64 @@ public class AuthController : ControllerBase
         return Ok(user);
     }
 
-    [Authorize]
-    [HttpGet("protected")]
-    public IActionResult Protected()
+    [Authorize(Policy = "UserOrAdmin")]
+    [HttpGet("user-area")]
+    public IActionResult UserArea()
     {
         var username = User.FindFirst(ClaimTypes.Name)?.Value;
-        return Ok(new { message = $"Olá, {username}! Você está autenticado." });
+        var role = User.FindFirst(ClaimTypes.Role)?.Value;
+        return Ok(new { message = $"Área de usuário! Bem-vindo, {username} ({role})" });
+    }
+
+    [Authorize(Policy = "AdminOnly")]
+    [HttpGet("admin-area")]
+    public IActionResult AdminArea()
+    {
+        var username = User.FindFirst(ClaimTypes.Name)?.Value;
+        return Ok(new { message = $"Área administrativa! Bem-vindo, Admin {username}" });
+    }
+
+    [Authorize(Policy = "AdminOnly")]
+    [HttpGet("users")]
+    public async Task<IActionResult> GetAllUsers()
+    {
+        var users = await _context.Users
+            .Select(u => new
+            {
+                u.Id,
+                u.Username,
+                u.Email,
+                u.Role,
+                u.CreatedAt
+            })
+            .ToListAsync();
+
+        return Ok(users);
+    }
+
+    [Authorize(Policy = "AdminOnly")]
+    [HttpPut("users/{id}/role")]
+    public async Task<IActionResult> UpdateUserRole(int id, [FromBody] UpdateRoleRequest request)
+    {
+        var user = await _context.Users.FindAsync(id);
+        
+        if (user == null)
+        {
+            return NotFound(new { message = "Usuário não encontrado" });
+        }
+
+        var validRoles = new[] { "Admin", "User", "Manager" };
+        if (!validRoles.Contains(request.Role))
+        {
+            return BadRequest(new { message = "Role inválida. Use: Admin, User ou Manager" });
+        }
+
+        user.Role = request.Role;
+        user.UpdatedAt = DateTime.UtcNow;
+        
+        await _context.SaveChangesAsync();
+
+        return Ok(new { message = "Role atualizada com sucesso", userId = user.Id, newRole = user.Role });
     }
 
     private string GenerateJwtToken(User user)
@@ -122,6 +184,7 @@ public class AuthController : ControllerBase
             new Claim(ClaimTypes.Name, user.Username),
             new Claim(ClaimTypes.Email, user.Email),
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new Claim(ClaimTypes.Role, user.Role),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 
