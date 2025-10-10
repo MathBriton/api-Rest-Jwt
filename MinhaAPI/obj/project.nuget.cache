@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "x6k7QHUi2d630+Uej+t/9iAnlW3NPRN9SSuZ/dsfVZOgUDKQ0F69llW27EP9IMjWMAEec28sWsidL9Kvp8rxuQ==",
+  "dgSpecHash": "IMwuJFEzciA=",
   "success": true,
   "projectFilePath": "/home/brito/Documents/csharp-projetos/Rest-Jwt/src/MinhaAPI/MinhaAPI.csproj",
   "expectedPackageFiles": [
