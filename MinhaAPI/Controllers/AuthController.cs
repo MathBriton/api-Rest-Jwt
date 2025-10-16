@@ -1,12 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using MinhaAPI.Data;
 using MinhaAPI.Models;
-using System.IdentityModel.Tokens.Jwt;
+using MinhaAPI.Services;
 using System.Security.Claims;
-using System.Text;
 using BCrypt.Net;
 
 namespace MinhaAPI.Controllers;
@@ -17,11 +15,13 @@ public class AuthController : ControllerBase
 {
     private readonly IConfiguration _configuration;
     private readonly AppDbContext _context;
+    private readonly ITokenService _tokenService;
 
-    public AuthController(IConfiguration configuration, AppDbContext context)
+    public AuthController(IConfiguration configuration, AppDbContext context, ITokenService tokenService)
     {
         _configuration = configuration;
         _context = context;
+        _tokenService = tokenService;
     }
 
     [HttpPost("register")]
@@ -69,17 +69,79 @@ public class AuthController : ControllerBase
             return Unauthorized(new { message = "Usuário ou senha inválidos" });
         }
 
-        var token = GenerateJwtToken(user);
-        var expiration = DateTime.UtcNow.AddMinutes(
-            int.Parse(_configuration["JwtSettings:ExpirationMinutes"]));
+        // Gerar tokens
+        var accessToken = _tokenService.GenerateAccessToken(user);
+        var refreshToken = _tokenService.GenerateRefreshToken();
+        
+        // Salvar refresh token no banco
+        var savedRefreshToken = await _tokenService.SaveRefreshTokenAsync(user.Id, refreshToken);
+
+        var jwtSettings = _configuration.GetSection("JwtSettings");
+        var accessTokenExpiration = DateTime.UtcNow.AddMinutes(
+            int.Parse(jwtSettings["AccessTokenExpirationMinutes"]));
 
         return Ok(new LoginResponse
         {
-            Token = token,
-            Expiration = expiration,
+            AccessToken = accessToken,
+            RefreshToken = refreshToken,
+            AccessTokenExpiration = accessTokenExpiration,
+            RefreshTokenExpiration = savedRefreshToken.ExpiresAt,
             Username = user.Username,
             Role = user.Role
         });
+    }
+
+    [HttpPost("refresh")]
+    public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest request)
+    {
+        var refreshToken = await _tokenService.GetRefreshTokenAsync(request.RefreshToken);
+
+        if (refreshToken == null || !refreshToken.IsActive)
+        {
+            return Unauthorized(new { message = "Refresh token inválido ou expirado" });
+        }
+
+        // Revogar o refresh token antigo
+        await _tokenService.RevokeRefreshTokenAsync(request.RefreshToken);
+
+        // Gerar novos tokens
+        var user = refreshToken.User;
+        var newAccessToken = _tokenService.GenerateAccessToken(user);
+        var newRefreshToken = _tokenService.GenerateRefreshToken();
+        
+        // Salvar novo refresh token
+        var savedRefreshToken = await _tokenService.SaveRefreshTokenAsync(user.Id, newRefreshToken);
+
+        var jwtSettings = _configuration.GetSection("JwtSettings");
+        var accessTokenExpiration = DateTime.UtcNow.AddMinutes(
+            int.Parse(jwtSettings["AccessTokenExpirationMinutes"]));
+
+        return Ok(new LoginResponse
+        {
+            AccessToken = newAccessToken,
+            RefreshToken = newRefreshToken,
+            AccessTokenExpiration = accessTokenExpiration,
+            RefreshTokenExpiration = savedRefreshToken.ExpiresAt,
+            Username = user.Username,
+            Role = user.Role
+        });
+    }
+
+    [Authorize]
+    [HttpPost("revoke")]
+    public async Task<IActionResult> RevokeToken([FromBody] RefreshTokenRequest request)
+    {
+        await _tokenService.RevokeRefreshTokenAsync(request.RefreshToken);
+        return Ok(new { message = "Token revogado com sucesso" });
+    }
+
+    [Authorize]
+    [HttpPost("logout")]
+    public async Task<IActionResult> Logout()
+    {
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+        await _tokenService.RevokeAllUserRefreshTokensAsync(userId);
+        return Ok(new { message = "Logout realizado com sucesso" });
     }
 
     [Authorize]
@@ -148,33 +210,6 @@ public class AuthController : ControllerBase
         await _context.SaveChangesAsync();
 
         return Ok(new { message = "Role atualizada com sucesso", userId = user.Id, newRole = user.Role });
-    }
-
-    private string GenerateJwtToken(User user)
-    {
-        var jwtSettings = _configuration.GetSection("JwtSettings");
-        var secretKey = jwtSettings["SecretKey"];
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
-        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-        var claims = new[]
-        {
-            new Claim(ClaimTypes.Name, user.Username),
-            new Claim(ClaimTypes.Email, user.Email),
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new Claim(ClaimTypes.Role, user.Role),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-        };
-
-        var token = new JwtSecurityToken(
-            issuer: jwtSettings["Issuer"],
-            audience: jwtSettings["Audience"],
-            claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(int.Parse(jwtSettings["ExpirationMinutes"])),
-            signingCredentials: credentials
-        );
-
-        return new JwtSecurityTokenHandler().WriteToken(token);
     }
 }
 

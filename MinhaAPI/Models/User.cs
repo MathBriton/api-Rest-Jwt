@@ -15,10 +15,13 @@ public class User
 
     [Required]
     public string PasswordHash { get; set; }
-
+    [Required, MaxLength(50)]
     public string Role { get; set; } = "User"; // 👈 Adicionado
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public DateTime? UpdatedAt { get; set; }
+    
+    // Relacionamento com RefreshTokens
+    public ICollection<RefreshToken> RefreshTokens { get; set; }
 }

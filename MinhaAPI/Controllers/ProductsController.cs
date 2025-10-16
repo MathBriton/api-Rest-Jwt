@@ -18,7 +18,6 @@ public class ProductsController : ControllerBase
         _context = context;
     }
 
-    // GET: api/products
     [HttpGet]
     public async Task<ActionResult<PagedResult<Product>>> GetProducts(
         [FromQuery] int page = 1,
@@ -33,7 +32,6 @@ public class ProductsController : ControllerBase
     {
         var query = _context.Products.AsQueryable();
 
-        // Filtros
         if (!string.IsNullOrWhiteSpace(search))
         {
             query = query.Where(p => p.Name.Contains(search) || p.Description.Contains(search));
@@ -59,7 +57,6 @@ public class ProductsController : ControllerBase
             query = query.Where(p => p.Price <= maxPrice.Value);
         }
 
-        // Ordenação
         query = sortBy.ToLower() switch
         {
             "price" => sortOrder.ToLower() == "desc" 
@@ -98,7 +95,6 @@ public class ProductsController : ControllerBase
         return Ok(result);
     }
 
-    // GET: api/products/5
     [HttpGet("{id}")]
     public async Task<ActionResult<Product>> GetProduct(int id)
     {
@@ -112,7 +108,6 @@ public class ProductsController : ControllerBase
         return Ok(product);
     }
 
-    // GET: api/products/categories
     [HttpGet("categories")]
     public async Task<ActionResult<List<string>>> GetCategories()
     {
@@ -126,7 +121,6 @@ public class ProductsController : ControllerBase
         return Ok(categories);
     }
 
-    // POST: api/products
     [HttpPost]
     [Authorize(Policy = "AdminOnly")]
     public async Task<ActionResult<Product>> CreateProduct([FromBody] ProductCreateRequest request)
@@ -148,7 +142,6 @@ public class ProductsController : ControllerBase
         return CreatedAtAction(nameof(GetProduct), new { id = product.Id }, product);
     }
 
-    // PUT: api/products/5
     [HttpPut("{id}")]
     [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> UpdateProduct(int id, [FromBody] ProductUpdateRequest request)
@@ -160,7 +153,6 @@ public class ProductsController : ControllerBase
             return NotFound(new { message = "Produto não encontrado" });
         }
 
-        // Atualizar apenas campos fornecidos
         if (!string.IsNullOrWhiteSpace(request.Name))
             product.Name = request.Name;
 
@@ -186,7 +178,6 @@ public class ProductsController : ControllerBase
         return Ok(product);
     }
 
-    // DELETE: api/products/5
     [HttpDelete("{id}")]
     [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> DeleteProduct(int id)
@@ -204,7 +195,6 @@ public class ProductsController : ControllerBase
         return Ok(new { message = "Produto excluído com sucesso" });
     }
 
-    // PATCH: api/products/5/stock
     [HttpPatch("{id}/stock")]
     [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> UpdateStock(int id, [FromBody] UpdateStockRequest request)
@@ -223,4 +213,9 @@ public class ProductsController : ControllerBase
 
         return Ok(new { message = "Estoque atualizado", productId = product.Id, newStock = product.Stock });
     }
+}
+
+public class UpdateStockRequest
+{
+    public int Stock { get; set; }
 }
