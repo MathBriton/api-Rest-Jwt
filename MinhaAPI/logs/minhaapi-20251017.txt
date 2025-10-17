@@ -1,0 +1,30 @@
+2025-10-17 17:36:37.119 -03:00 [INF] Iniciando aplicação...
+2025-10-17 17:36:41.970 -03:00 [INF] Executed DbCommand (52ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT COUNT(*) FROM "sqlite_master" WHERE "type" = 'table' AND "rootpage" IS NOT NULL;
+2025-10-17 17:36:43.594 -03:00 [INF] Executed DbCommand (4ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Users" AS "u")
+2025-10-17 17:36:43.690 -03:00 [INF] Executed DbCommand (5ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "Products" AS "p")
+2025-10-17 17:36:44.205 -03:00 [INF] Aplicação iniciada com sucesso!
+2025-10-17 17:36:44.397 -03:00 [INF] User profile is available. Using '/home/brito/.aspnet/DataProtection-Keys' as key repository; keys will not be encrypted at rest.
+2025-10-17 17:36:45.228 -03:00 [INF] Now listening on: http://localhost:5150
+2025-10-17 17:36:45.298 -03:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-10-17 17:36:45.327 -03:00 [INF] Hosting environment: Development
+2025-10-17 17:36:45.329 -03:00 [INF] Content root path: /home/brito/Documents/csharp-projetos/Rest-Jwt/src/MinhaAPI
+2025-10-17 17:36:46.518 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5150/swagger/index.html - null null
+2025-10-17 17:36:47.880 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5150/swagger/index.html - 200 null text/html;charset=utf-8 1367.6577ms
+2025-10-17 17:36:48.048 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5150/swagger/swagger-ui.css - null null
+2025-10-17 17:36:48.061 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5150/swagger/swagger-ui-bundle.js - null null
+2025-10-17 17:36:48.136 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5150/swagger/swagger-ui-standalone-preset.js - null null
+2025-10-17 17:36:48.258 -03:00 [INF] Sending file. Request path: '/swagger-ui.css'. Physical path: 'N/A'
+2025-10-17 17:36:48.270 -03:00 [INF] Sending file. Request path: '/swagger-ui-standalone-preset.js'. Physical path: 'N/A'
+2025-10-17 17:36:48.272 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5150/swagger/swagger-ui.css - 200 152034 text/css 223.4401ms
+2025-10-17 17:36:48.320 -03:00 [INF] Sending file. Request path: '/swagger-ui-bundle.js'. Physical path: 'N/A'
+2025-10-17 17:36:48.354 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5150/swagger/swagger-ui-bundle.js - 200 1456926 text/javascript 293.1243ms
+2025-10-17 17:36:48.355 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5150/swagger/swagger-ui-standalone-preset.js - 200 230280 text/javascript 219.1764ms
+2025-10-17 17:36:49.746 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5150/swagger/v1/swagger.json - null null
+2025-10-17 17:36:51.036 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5150/swagger/v1/swagger.json - 200 null application/json;charset=utf-8 1289.6487ms

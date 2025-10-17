@@ -1,9 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "OPaBgpcg0mg=",
+  "dgSpecHash": "xW28CgEmeAU=",
   "success": true,
   "projectFilePath": "/home/brito/Documents/csharp-projetos/Rest-Jwt/src/MinhaAPI/MinhaAPI.csproj",
   "expectedPackageFiles": [
+    "/home/brito/.nuget/packages/aspnetcoreratelimit/5.0.0/aspnetcoreratelimit.5.0.0.nupkg.sha512",
     "/home/brito/.nuget/packages/bcrypt.net-next/4.0.3/bcrypt.net-next.4.0.3.nupkg.sha512",
     "/home/brito/.nuget/packages/humanizer.core/2.14.1/humanizer.core.2.14.1.nupkg.sha512",
     "/home/brito/.nuget/packages/microsoft.aspnetcore.authentication.jwtbearer/8.0.0/microsoft.aspnetcore.authentication.jwtbearer.8.0.0.nupkg.sha512",
@@ -49,6 +50,7 @@
     "/home/brito/.nuget/packages/microsoft.identitymodel.tokens/8.0.0/microsoft.identitymodel.tokens.8.0.0.nupkg.sha512",
     "/home/brito/.nuget/packages/microsoft.openapi/1.6.14/microsoft.openapi.1.6.14.nupkg.sha512",
     "/home/brito/.nuget/packages/mono.texttemplating/3.0.0/mono.texttemplating.3.0.0.nupkg.sha512",
+    "/home/brito/.nuget/packages/newtonsoft.json/13.0.2/newtonsoft.json.13.0.2.nupkg.sha512",
     "/home/brito/.nuget/packages/serilog/4.2.0/serilog.4.2.0.nupkg.sha512",
     "/home/brito/.nuget/packages/serilog.aspnetcore/9.0.0/serilog.aspnetcore.9.0.0.nupkg.sha512",
     "/home/brito/.nuget/packages/serilog.extensions.hosting/9.0.0/serilog.extensions.hosting.9.0.0.nupkg.sha512",

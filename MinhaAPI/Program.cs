@@ -5,6 +5,7 @@ using MinhaAPI.Data;
 using MinhaAPI.Models;
 using MinhaAPI.Services;
 using MinhaAPI.Middleware;
+using AspNetCoreRateLimit;
 using Serilog;
 using System.Text;
 
@@ -30,6 +31,13 @@ try
 
     // Registrar serviços
     builder.Services.AddScoped<ITokenService, TokenService>();
+
+    // Configurar Rate Limiting
+    builder.Services.AddMemoryCache();
+    builder.Services.Configure<IpRateLimitOptions>(builder.Configuration.GetSection("IpRateLimiting"));
+    builder.Services.Configure<IpRateLimitPolicies>(builder.Configuration.GetSection("IpRateLimitPolicies"));
+    builder.Services.AddInMemoryRateLimiting();
+    builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
 
     // Configuração do JWT
     var jwtSettings = builder.Configuration.GetSection("JwtSettings");
@@ -68,6 +76,9 @@ try
     builder.Services.AddSwaggerGen();
 
     var app = builder.Build();
+
+    // Registrar Rate Limiting Middleware (deve vir antes de outros middlewares)
+    app.UseIpRateLimiting();
 
     // Registrar Middleware de Tratamento de Erros
     app.UseMiddleware<ErrorHandlingMiddleware>();
